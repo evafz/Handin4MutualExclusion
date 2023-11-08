@@ -4,6 +4,10 @@ package handin4;
 
 option go_package = "grpc/proto";
 
+service myservice {
+    rpc MethodName (EnterRequest) returns (Exit);
+}
+
 message EnterRequest {
     int64 nodeId = 1;
 }
