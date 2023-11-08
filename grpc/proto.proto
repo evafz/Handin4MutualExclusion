@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package handin4;
+
+option go_package = "grpc/proto";
+
+message EnterRequest {
+    int64 nodeId = 1;
+}
+
+message Exit {
+    int64 nodeId = 1;
+}
