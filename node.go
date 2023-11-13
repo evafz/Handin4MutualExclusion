@@ -1,8 +1,9 @@
-package handin4mutualexclusion
+package main
 
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 type Node struct {
@@ -11,6 +12,9 @@ type Node struct {
 	hasToken bool
 	Mutex    sync.Mutex
 }
+
+var globalMutex sync.Mutex
+var wg sync.WaitGroup
 
 func main() {
 	//make three nodes in an array
@@ -30,48 +34,53 @@ func main() {
 	//start up the nodes
 
 	for i := 0; i < 3; i++ {
+		wg.Add(1)
 		go func(node *Node) {
+			defer wg.Done()
 			node.enterCriticalSection(nodes)
 		}(nodes[i%len(nodes)])
 	}
+
+	wg.Wait()
+
+	select {}
 }
 
 func (node *Node) enterCriticalSection(nodes []*Node) {
-	node.Mutex.Lock()
+	globalMutex.Lock()
 
-	fmt.Println("A node is now in the critical section")
-	//Sleep
-	fmt.Println("The node has now left the critical section")
+	if node.hasToken {
 
-	nextNodeID := (node.id + 1) % len(nodes)
-	node.passToken(nextNodeID, nodes)
+		fmt.Println("Node", node.id, "is now in the critical section")
+		time.Sleep(time.Millisecond * 200)
+		fmt.Println("Node", node.id, "has now left the critical section")
+
+		globalMutex.Unlock()
+
+		nextNodeID := (node.id + 1) % len(nodes)
+		node.passToken(nextNodeID, nodes)
+
+	} else {
+		globalMutex.Unlock()
+		time.Sleep(time.Duration(200) * time.Millisecond)
+	}
 
 }
 
 func (node *Node) passToken(nextID int, nodes []*Node) {
 	nextNode := nodes[nextID]
-	nextNode.Mutex.Lock()
+	globalMutex.Lock()
 
+	node.Mutex.Lock()
 	node.hasToken = false
 	node.Mutex.Unlock()
 
+	nextNode.Mutex.Lock()
 	nextNode.hasToken = true
-
 	nextNode.Mutex.Unlock()
 
-}
+	fmt.Println("Node", node.id, "has passed on the token to Node", nextNode.id)
 
-/*
-func EnterRequest(Id int) {
-	//wait
-	//ask if others are in critsect
-	//if one is true, wait and ask again over and over until they're not
-	//if all are false, set yourself to true and go in babyh
-	//call exit once done
-}
+	globalMutex.Unlock()
 
-func Exit(Id int) {
-	//set inCriticalSection to false
-	//start over with EnterRequest
 }
-*/
