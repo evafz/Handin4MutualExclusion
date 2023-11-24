@@ -6,15 +6,11 @@ import (
 	"time"
 )
 
-//var wg sync.WaitGroup
-
 type Node struct {
 	id       int
 	hasToken bool
 	Mutex    sync.Mutex
 }
-
-//var globalMutex sync.Mutex
 
 func main() {
 	//make three nodes in an array
@@ -55,11 +51,6 @@ func (node *Node) enterCriticalSection(nodes []*Node) {
 		//lock the node's mutex
 		node.Mutex.Lock()
 
-	
-	
-			//unlock the globalMutex before exiting the function to avoid deadlock
-			//defer globalMutex.Unlock()
-
 		if node.hasToken {
 
 			fmt.Println("Node", node.id, "is now in the critical section")
@@ -86,12 +77,7 @@ func (node *Node) passToken(nextID int, nodes []*Node) {
 	nextNode := nodes[nextID]
 	
 	//lock the next node's Mutex
-	//node.Mutex.Lock()
 	nextNode.Mutex.Lock()
-
-	//lock the globalMutex to avoid race conditions
-	//globalMutex.Lock()
-	//defer globalMutex.Unlock()
 
 	//pass the token
 	node.hasToken = false	
@@ -102,15 +88,6 @@ func (node *Node) passToken(nextID int, nodes []*Node) {
 	//Unlock the next node's Mutex
 	nextNode.Mutex.Unlock()
 }
-	//globalMutex.Unlock()
-
-	//increment teh WaitGroup counter for the next node
-	//wg.Add(1)
-
-	//Launch a goroutine for the next node
-	//go func(nextNode *Node) {
-		//defer wg.Done()
-		//nextNode.enterCriticalSection(nodes)
-	//}(nextNode)
+	
 
 
