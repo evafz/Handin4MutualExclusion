@@ -1,4 +1,4 @@
-module Handin4
+module handin4
 
 go 1.21.0
 
